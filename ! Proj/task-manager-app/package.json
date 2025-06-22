@@ -19,7 +19,8 @@
     "react-native": "0.79.4",
     "react-native-modal": "^14.0.0-rc.1",
     "react-native-uuid": "^2.0.3",
-    "react-native-web": "^0.20.0"
+    "react-native-web": "^0.20.0",
+    "expo-notifications": "~0.31.3"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
