@@ -12,6 +12,15 @@ export interface Task {
   subTasks: SubTask[];
 }
 
+export type TaskHistoryRecord = {
+  id: string; // уникальный id записи
+  action: 'created' | 'edited' | 'deleted';
+  date: string; // ISO-строка
+  taskId: string;
+  before?: Task; // состояние до (для edit/delete)
+  after?: Task;  // состояние после (для create/edit)
+};
+
 /**
  * Рассчитывает необходимую длину провода для соединителя
  * @param contactsCount Количество контактов в соединителе

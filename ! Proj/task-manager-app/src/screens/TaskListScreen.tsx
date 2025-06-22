@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   StatusBar,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import uuid from 'react-native-uuid';
 import { Task, calculateAverageProgress } from '../types';
@@ -15,6 +16,7 @@ import { colors } from '../theme/colors';
 import TaskItem from '../components/TaskItem';
 import TaskModal from '../components/TaskModal';
 import { useTaskStorage } from '../hooks/useTaskStorage';
+import * as FileSystem from 'expo-file-system';
 
 const TaskListScreen: React.FC = () => {
   const { tasks, setTasks, loading } = useTaskStorage();
@@ -45,6 +47,29 @@ const TaskListScreen: React.FC = () => {
     handleCloseModal();
   };
 
+  const exportTasksToCSV = async (tasks: Task[]) => {
+    if (!tasks.length) {
+      Alert.alert('Нет задач для экспорта');
+      return;
+    }
+    // Формируем CSV-строку
+    const header = 'ID,Title,Description,DueDate,SubTasks\n';
+    const rows = tasks.map(task => {
+      const subTasksStr = task.subTasks.map(st => `${st.title} [${st.completed ? '✓' : ' '}]`).join('; ');
+      return `"${task.id}","${task.title.replace(/"/g, '""')}","${task.description.replace(/"/g, '""')}","${task.dueDate.toISOString()}","${subTasksStr.replace(/"/g, '""')}"`;
+    });
+    const csv = header + rows.join('\n');
+
+    // Путь для сохранения
+    const fileUri = FileSystem.documentDirectory + 'tasks_export.csv';
+    try {
+      await FileSystem.writeAsStringAsync(fileUri, csv, { encoding: FileSystem.EncodingType.UTF8 });
+      Alert.alert('Экспорт завершен', `Файл сохранен: ${fileUri}`);
+    } catch (e) {
+      Alert.alert('Ошибка экспорта', String(e));
+    }
+  };
+
   if (loading) {
     return (
       <View style={[styles.container, styles.centered]}>
@@ -58,6 +83,9 @@ const TaskListScreen: React.FC = () => {
       <StatusBar barStyle="light-content" />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>ALL</Text>
+        <TouchableOpacity onPress={() => exportTasksToCSV(tasks)} style={{ marginLeft: 16, padding: 8, backgroundColor: colors.accent, borderRadius: 8 }}>
+          <Text style={{ color: 'black', fontWeight: 'bold' }}>Экспорт CSV</Text>
+        </TouchableOpacity>
       </View>
       <View style={styles.avgProgressContainer}>
         <Text style={styles.avgProgressLabel}>Средний прогресс:</Text>

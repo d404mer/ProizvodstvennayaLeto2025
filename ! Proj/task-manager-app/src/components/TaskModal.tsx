@@ -14,6 +14,7 @@ import uuid from 'react-native-uuid';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Task, SubTask } from '../types';
 import { colors } from '../theme/colors';
+import { useTaskHistory } from '../hooks/useTaskHistory';
 
 interface TaskModalProps {
   visible: boolean;
@@ -34,6 +35,8 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [subTasks, setSubTasks] = useState<SubTask[]>([]);
   const [newSubTask, setNewSubTask] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const { history, addHistoryRecord } = useTaskHistory();
 
   useEffect(() => {
     if (taskToEdit) {
@@ -50,6 +53,19 @@ const TaskModal: React.FC<TaskModalProps> = ({
   }, [taskToEdit]);
 
   const handleSubmit = () => {
+    if (!title.trim()) {
+      setError('Task name is required.');
+      return;
+    }
+    if (dueDate < new Date(new Date().setHours(0,0,0,0))) {
+      setError('Due date cannot be in the past.');
+      return;
+    }
+    if (subTasks.some(st => !st.title.trim())) {
+      setError('All sub-tasks must have a name.');
+      return;
+    }
+    setError(null);
     const taskData = {
       title,
       description,
@@ -57,10 +73,27 @@ const TaskModal: React.FC<TaskModalProps> = ({
       subTasks,
     };
 
+    const now = new Date().toISOString();
     if (taskToEdit) {
+      addHistoryRecord({
+        id: uuid.v4() as string,
+        action: 'edited',
+        date: now,
+        taskId: taskToEdit.id,
+        before: taskToEdit,
+        after: { ...taskData, id: taskToEdit.id },
+      });
       onSubmit({ ...taskData, id: taskToEdit.id });
     } else {
-      onSubmit(taskData);
+      const tempId = uuid.v4() as string;
+      addHistoryRecord({
+        id: uuid.v4() as string,
+        action: 'created',
+        date: now,
+        taskId: tempId,
+        after: { ...taskData, id: tempId },
+      });
+      onSubmit({ ...taskData, id: tempId });
     }
   };
 
@@ -99,6 +132,9 @@ const TaskModal: React.FC<TaskModalProps> = ({
             <Text style={styles.modalTitle}>
               {taskToEdit ? 'Edit Task' : 'New Task'}
             </Text>
+            {error && (
+              <Text style={{ color: 'red', marginBottom: 8 }}>{error}</Text>
+            )}
             <TextInput
               style={styles.input}
               placeholder="Task Name"
@@ -177,6 +213,29 @@ const TaskModal: React.FC<TaskModalProps> = ({
                 </TouchableOpacity>
               </View>
             ))}
+
+            {/* История изменений */}
+            {taskToEdit && (
+              <View style={{ marginTop: 24 }}>
+                <Text style={{ color: colors.accent, fontWeight: 'bold', marginBottom: 8 }}>History</Text>
+                {history.filter(h => h.taskId === taskToEdit.id).length === 0 ? (
+                  <Text style={{ color: colors.secondary }}>No history yet.</Text>
+                ) : (
+                  history.filter(h => h.taskId === taskToEdit.id).map(h => (
+                    <View key={h.id} style={{ marginBottom: 6 }}>
+                      <Text style={{ color: colors.text, fontSize: 13 }}>
+                        {h.action.toUpperCase()} — {new Date(h.date).toLocaleString()} 
+                      </Text>
+                      {h.action === 'edited' && (
+                        <Text style={{ color: colors.secondary, fontSize: 12 }}>
+                          Title: {h.before?.title} → {h.after?.title}
+                        </Text>
+                      )}
+                    </View>
+                  ))
+                )}
+              </View>
+            )}
           </ScrollView>
 
           <View style={styles.buttonContainer}>
