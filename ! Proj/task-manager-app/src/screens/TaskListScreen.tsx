@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import uuid from 'react-native-uuid';
-import { Task } from '../types';
+import { Task, calculateAverageProgress } from '../types';
 import { colors } from '../theme/colors';
 import TaskItem from '../components/TaskItem';
 import TaskModal from '../components/TaskModal';
@@ -58,6 +58,13 @@ const TaskListScreen: React.FC = () => {
       <StatusBar barStyle="light-content" />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>ALL</Text>
+      </View>
+      <View style={styles.avgProgressContainer}>
+        <Text style={styles.avgProgressLabel}>Средний прогресс:</Text>
+        <View style={styles.avgProgressBarBg}>
+          <View style={[styles.avgProgressBar, { width: `${calculateAverageProgress(tasks)}%` }]} />
+        </View>
+        <Text style={styles.avgProgressValue}>{calculateAverageProgress(tasks)}%</Text>
       </View>
       <FlatList
         data={tasks}
@@ -125,6 +132,38 @@ const styles = StyleSheet.create({
   centered: {
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  avgProgressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: 'black',
+  },
+  avgProgressLabel: {
+    color: colors.text,
+    fontSize: 16,
+    marginRight: 10,
+  },
+  avgProgressBarBg: {
+    flex: 1,
+    height: 8,
+    backgroundColor: colors.progressBarBackground,
+    borderRadius: 4,
+    marginRight: 10,
+    overflow: 'hidden',
+  },
+  avgProgressBar: {
+    height: 8,
+    backgroundColor: colors.accent,
+    borderRadius: 4,
+  },
+  avgProgressValue: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: 'bold',
+    width: 40,
+    textAlign: 'right',
   },
 });
 
