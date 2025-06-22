@@ -130,21 +130,26 @@ const TaskModal: React.FC<TaskModalProps> = ({
         <View style={styles.modalContent}>
           <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
             <Text style={styles.modalTitle}>
-              {taskToEdit ? 'Edit Task' : 'New Task'}
+              {taskToEdit ? 'Редактировать задачу' : 'Новая задача'}
             </Text>
             {error && (
-              <Text style={{ color: 'red', marginBottom: 8 }}>{error}</Text>
+              <Text style={{ color: 'red', marginBottom: 8 }}>{
+                error === 'Task name is required.' ? 'Введите название задачи.' :
+                error === 'Due date cannot be in the past.' ? 'Дедлайн не может быть в прошлом.' :
+                error === 'All sub-tasks must have a name.' ? 'У всех подзадач должно быть название.' :
+                error
+              }</Text>
             )}
             <TextInput
               style={styles.input}
-              placeholder="Task Name"
+              placeholder="Название задачи"
               placeholderTextColor={colors.secondary}
               value={title}
               onChangeText={setTitle}
             />
             <TextInput
               style={styles.input}
-              placeholder="Description"
+              placeholder="Описание"
               placeholderTextColor={colors.secondary}
               value={description}
               onChangeText={setDescription}
@@ -156,7 +161,7 @@ const TaskModal: React.FC<TaskModalProps> = ({
               onPress={() => setShowDatePicker(true)}
             >
               <Text style={styles.datePickerText}>
-                Due: {dueDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                Дедлайн: {dueDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
               </Text>
             </TouchableOpacity>
 
@@ -169,18 +174,18 @@ const TaskModal: React.FC<TaskModalProps> = ({
               />
             )}
 
-            <Text style={styles.subTaskTitle}>Sub-tasks</Text>
+            <Text style={styles.subTaskTitle}>Подзадачи</Text>
             <View style={styles.subTaskInputContainer}>
               <TextInput
                 style={styles.subTaskInput}
-                placeholder="Add a new sub-task..."
+                placeholder="Добавить подзадачу..."
                 placeholderTextColor={colors.secondary}
                 value={newSubTask}
                 onChangeText={setNewSubTask}
                 onSubmitEditing={addSubTask}
               />
               <TouchableOpacity style={styles.addButton} onPress={addSubTask}>
-                <Text style={styles.addButtonText}>Add</Text>
+                <Text style={styles.addButtonText}>Добавить</Text>
               </TouchableOpacity>
             </View>
             {subTasks.map((sub) => (
@@ -217,18 +222,18 @@ const TaskModal: React.FC<TaskModalProps> = ({
             {/* История изменений */}
             {taskToEdit && (
               <View style={{ marginTop: 24 }}>
-                <Text style={{ color: colors.accent, fontWeight: 'bold', marginBottom: 8 }}>History</Text>
+                <Text style={{ color: colors.accent, fontWeight: 'bold', marginBottom: 8 }}>История изменений</Text>
                 {history.filter(h => h.taskId === taskToEdit.id).length === 0 ? (
-                  <Text style={{ color: colors.secondary }}>No history yet.</Text>
+                  <Text style={{ color: colors.secondary }}>История пуста.</Text>
                 ) : (
                   history.filter(h => h.taskId === taskToEdit.id).map(h => (
                     <View key={h.id} style={{ marginBottom: 6 }}>
                       <Text style={{ color: colors.text, fontSize: 13 }}>
-                        {h.action.toUpperCase()} — {new Date(h.date).toLocaleString()} 
+                        {h.action === 'created' ? 'Создано' : h.action === 'edited' ? 'Изменено' : 'Удалено'} — {new Date(h.date).toLocaleString('ru-RU')}
                       </Text>
                       {h.action === 'edited' && (
                         <Text style={{ color: colors.secondary, fontSize: 12 }}>
-                          Title: {h.before?.title} → {h.after?.title}
+                          Название: {h.before?.title} → {h.after?.title}
                         </Text>
                       )}
                     </View>
@@ -240,10 +245,10 @@ const TaskModal: React.FC<TaskModalProps> = ({
 
           <View style={styles.buttonContainer}>
             <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onClose}>
-              <Text style={styles.buttonText}>Cancel</Text>
+              <Text style={styles.buttonText}>Отмена</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.button, styles.saveButton]} onPress={handleSubmit}>
-              <Text style={styles.buttonText}>{taskToEdit ? 'Save' : 'Create'}</Text>
+              <Text style={styles.buttonText}>{taskToEdit ? 'Сохранить' : 'Создать'}</Text>
             </TouchableOpacity>
           </View>
         </View>

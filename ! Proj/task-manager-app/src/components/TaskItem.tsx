@@ -13,11 +13,11 @@ const TaskItem: React.FC<TaskItemProps> = ({ item, onPress }) => {
   const totalSubtasks = item.subTasks.length;
   const progress = totalSubtasks > 0 ? (completedSubtasks / totalSubtasks) * 100 : 0;
 
-  let formattedDate = 'No date';
+  let formattedDate = 'Без даты';
   if (item.dueDate) {
     const dateObj = new Date(item.dueDate);
     if (!isNaN(dateObj.getTime())) {
-      formattedDate = new Intl.DateTimeFormat('en-GB', {
+      formattedDate = new Intl.DateTimeFormat('ru-RU', {
         day: 'numeric',
         month: 'long',
       }).format(dateObj);

@@ -33,17 +33,16 @@ const TaskListScreen: React.FC = () => {
     setTaskToEdit(null);
   };
 
-  const handleTaskSubmit = (taskData: Omit<Task, 'id'> | Task) => {
+  const handleTaskSubmit = (taskData: Task) => {
     console.log('Submitting task:', taskData);
-    if ('id' in taskData) {
-      setTasks(tasks.map((t) => (t.id === taskData.id ? JSON.parse(JSON.stringify(taskData)) : t)));
-    } else {
-      const newTask: Task = {
-        id: uuid.v4() as string,
-        ...(taskData as Omit<Task, 'id'>),
-      };
-      setTasks([...tasks, newTask]);
-    }
+    setTasks(prevTasks => {
+      const exists = prevTasks.some((t) => t.id === taskData.id);
+      if (exists) {
+        return prevTasks.map((t) => (t.id === taskData.id ? { ...taskData } : t));
+      } else {
+        return [...prevTasks, taskData];
+      }
+    });
     handleCloseModal();
   };
 
@@ -64,7 +63,7 @@ const TaskListScreen: React.FC = () => {
     const fileUri = FileSystem.documentDirectory + 'tasks_export.csv';
     try {
       await FileSystem.writeAsStringAsync(fileUri, csv, { encoding: FileSystem.EncodingType.UTF8 });
-      Alert.alert('Экспорт завершен', `Файл сохранен: ${fileUri}`);
+      Alert.alert('Экспорт завершён', `Файл сохранён: ${fileUri}`);
     } catch (e) {
       Alert.alert('Ошибка экспорта', String(e));
     }
@@ -82,7 +81,7 @@ const TaskListScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>ALL</Text>
+        <Text style={styles.headerTitle}>ВСЕ ЗАДАЧИ</Text>
         <TouchableOpacity onPress={() => exportTasksToCSV(tasks)} style={{ marginLeft: 16, padding: 8, backgroundColor: colors.accent, borderRadius: 8 }}>
           <Text style={{ color: 'black', fontWeight: 'bold' }}>Экспорт CSV</Text>
         </TouchableOpacity>
